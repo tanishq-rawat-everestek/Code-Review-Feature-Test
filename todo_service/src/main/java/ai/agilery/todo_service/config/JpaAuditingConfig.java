@@ -20,21 +20,23 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class JpaAuditingConfig {
 
     /**
+     * System UUID constant for services without authentication.
+     */
+    private static final UUID SYSTEM_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
+    /**
      * Provides the current auditor (user) for auditing fields.
      * <p>
-     * Currently returns a system UUID. In a production application with authentication,
-     * this should return the ID of the currently logged-in user from the security context.
+     * Returns a system UUID for this service. This implementation is appropriate for
+     * services that do not have user authentication. In applications with authentication,
+     * this would typically retrieve the ID of the currently logged-in user from the
+     * security context (e.g., {@code SecurityContextHolder.getContext().getAuthentication()}).
      * </p>
      *
      * @return AuditorAware bean that supplies the current auditor's ID
      */
     @Bean
     public AuditorAware<UUID> auditorProvider() {
-        return () -> {
-            // TODO: In production, retrieve current user from SecurityContext
-            // Example: SecurityContextHolder.getContext().getAuthentication()...
-            // For now, return a system UUID
-            return Optional.of(UUID.fromString("00000000-0000-0000-0000-000000000000"));
-        };
+        return () -> Optional.of(SYSTEM_USER_ID);
     }
 }

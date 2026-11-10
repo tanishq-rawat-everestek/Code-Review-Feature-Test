@@ -98,7 +98,7 @@ public class TaskDto {
      */
     @JsonProperty(access = Access.READ_ONLY)
     @Schema(description = "Indicates whether the task is completed.", accessMode = Schema.AccessMode.READ_ONLY, example = "false")
-    private Boolean completed;
+    private boolean completed;
 
     /**
      * Timestamp when the task was created.

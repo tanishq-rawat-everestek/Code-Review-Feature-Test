@@ -17,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -63,6 +64,14 @@ public class Task {
     private UUID id;
 
     /**
+     * Version field for optimistic locking.
+     * Automatically managed by JPA to prevent lost updates in concurrent scenarios.
+     */
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
+    /**
      * Title or short description of the task.
      * This field is mandatory and has a maximum length of 200 characters.
      */
@@ -103,10 +112,10 @@ public class Task {
 
     /**
      * Flag indicating whether the task is completed.
-     * Defaults to FALSE. This field is mandatory.
+     * Defaults to false. This field is mandatory.
      */
     @Column(nullable = false)
-    private Boolean completed = Boolean.FALSE;
+    private boolean completed = false;
 
     /**
      * Timestamp when the task was created.

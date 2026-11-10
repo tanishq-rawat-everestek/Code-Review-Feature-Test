@@ -3,6 +3,7 @@ package ai.agilery.todo_service.config;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * Filter to log HTTP request and response details, including headers and
@@ -38,11 +40,24 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
      */
     public static final String X_CLIENT_ID = "X-Client-ID";
 
-
     /**
      * Default value for X-Client-ID and X-Client-Version headers.
      */
     public static final String UNKNOWN = "Unknown";
+
+    /**
+     * Pattern to identify and mask sensitive fields in JSON payloads.
+     * Matches common sensitive field names like password, token, secret, apiKey, etc.
+     */
+    private static final Pattern SENSITIVE_PATTERN = Pattern.compile(
+            "(\"(?:password|token|secret|apiKey|api_key|authorization|auth|credentials|pin|ssn|creditCard|credit_card)\"\\s*:\\s*)\"[^\"]*\"",
+            Pattern.CASE_INSENSITIVE
+    );
+
+    /**
+     * Replacement string for masked sensitive data.
+     */
+    private static final String MASKED_VALUE = "\"***MASKED***\"";
 
     /**
      * Filters the incoming HTTP request and outgoing HTTP response. If logging is
@@ -89,7 +104,7 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
 
     /**
      * Logs the details of the incoming HTTP request, including its method, URI, and
-     * body.
+     * body with sensitive data masked.
      *
      * @param request the cached HTTP request
      */
@@ -99,19 +114,36 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
         log.info("Incoming Request: '{}' '{}'", request.getMethod(), request.getRequestURI());
 
         if (!requestBody.isEmpty()) {
-            log.info("Request Payload {body = '{}'}", requestBody);
+            final String maskedBody = maskSensitiveData(requestBody);
+            log.debug("Request Payload {body = '{}'}", maskedBody);
         }
     }
 
     /**
      * Logs the details of the outgoing HTTP response, including its status and
-     * body.
+     * body with sensitive data masked.
      *
      * @param response the cached HTTP response
      */
     private void logResponse(final ContentCachingResponseWrapper response) {
         final String responseBody = new String(response.getContentAsByteArray(), StandardCharsets.UTF_8);
-        log.info("Response Payload {status = '{}', body = '{}'}", response.getStatus(), responseBody);
+        final String maskedBody = maskSensitiveData(responseBody);
+        log.debug("Response Payload {status = '{}', body = '{}'}", response.getStatus(), maskedBody);
+    }
+
+    /**
+     * Masks sensitive data in the provided payload.
+     * Replaces values of fields that match common sensitive field names
+     * (e.g., password, token, secret) with a masked placeholder.
+     *
+     * @param payload the original payload string
+     * @return the payload with sensitive data masked
+     */
+    private String maskSensitiveData(final String payload) {
+        if (payload == null || payload.isEmpty()) {
+            return payload;
+        }
+        return SENSITIVE_PATTERN.matcher(payload).replaceAll("$1" + MASKED_VALUE);
     }
 
     /**

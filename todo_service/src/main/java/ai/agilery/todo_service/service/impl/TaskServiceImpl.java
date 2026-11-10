@@ -57,10 +57,6 @@ public class TaskServiceImpl implements TaskService {
             task.setStatus(TaskStatus.PENDING);
         }
 
-        if (task.getCompleted() == null) {
-            task.setCompleted(Boolean.FALSE);
-        }
-
         Task savedTask = taskRepository.save(task);
 
         log.info("Task created successfully with ID: {}", savedTask.getId());
@@ -88,9 +84,9 @@ public class TaskServiceImpl implements TaskService {
         taskMapper.update(existingTask, taskDto);
 
         if (existingTask.getStatus() == TaskStatus.COMPLETED) {
-            existingTask.setCompleted(Boolean.TRUE);
+            existingTask.setCompleted(true);
         } else {
-            existingTask.setCompleted(Boolean.FALSE);
+            existingTask.setCompleted(false);
         }
 
         Task updatedTask = taskRepository.save(existingTask);
@@ -120,9 +116,9 @@ public class TaskServiceImpl implements TaskService {
         taskMapper.patch(existingTask, taskDto);
 
         if (existingTask.getStatus() == TaskStatus.COMPLETED) {
-            existingTask.setCompleted(Boolean.TRUE);
+            existingTask.setCompleted(true);
         } else if (taskDto.getStatus() != null) {
-            existingTask.setCompleted(Boolean.FALSE);
+            existingTask.setCompleted(false);
         }
 
         Task patchedTask = taskRepository.save(existingTask);
