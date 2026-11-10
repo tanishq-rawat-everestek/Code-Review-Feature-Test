@@ -19,3 +19,4 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerial
 public class WebConfig {
     // Empty
 }
+
